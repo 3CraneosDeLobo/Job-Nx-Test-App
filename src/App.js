@@ -15,24 +15,46 @@ function App() {
   return (
    
      
-      
+  <>
+    <div className='w-100 bg-dark screen' >
        <BrowserRouter>
-       <div className="container-sm">
+         
+        
+         <NavBar/>
+         <div className="container-sm bg-light mt-3 mb-5">
        
-        <NavBar/>
+      
+       <div>
+       <Routes>
+      <Route path='/' element={<HomePage/>} />
+      <Route path='/description/:id' element={<DescriptionPage />} />
+     
+      <Route path='*' element={<NotFoundPage/>}/>
+      </Routes>
+       </div>
+    
+ 
+     
+      </div>
+
+     
+      
+  <footer className="text-center text-white bg-secondary ">
+    
+    
+  
+    <div className="text-center p-3" >
+      © 2022 Copyright: 
+      <a className="text-white" href="https://github.com/3CraneosDeLobo/Job-Nx-Test-App">Github/3CraneosDeLobo</a>
+    </div>
+    
+  </footer>
         
      
-       <Routes>
-       <Route path='/' element={<HomePage/>} />
-       <Route path='/description/:id' element={<DescriptionPage />} />
-      
-       <Route path='*' element={<NotFoundPage/>}/>
-       </Routes>
-      
-       </div>
        </BrowserRouter>
    
-     
+       </div>
+  </>
   
   );
 }

@@ -11,8 +11,10 @@ export default function NavBar(){
           to='/'>
             HOME
             </NavLink>
-        
-       <CreateTransaction edit={false}/>
+         <div>
+         <CreateTransaction edit={false}/>
+         </div>
+      
         </div>
 
     </nav>

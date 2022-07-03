@@ -2,6 +2,7 @@ import {useEffect, useState} from "react";
 import {Link} from 'react-router-dom'
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Modal from 'react-bootstrap/Modal';
 
 
 
@@ -73,8 +74,18 @@ fetchApiTransactions();
 
 
 // DELETE TRANSACTION
+const [idTransaction, setIdTransaction] = useState("");
+const [show, setShow] = useState(false);
+const handleClose = () => setShow(false);
+const handleShow = (id) => {
+  setIdTransaction(id);
+  //console.log(id);
+  setShow(true)
+};
 
-const deleteTransaction = async (id) => {
+const deleteTransaction = async () => {
+  handleClose();
+  let id = idTransaction;
   myInit.method = "delete";
   let myRequestDelete = new Request(url+"/"+id, myInit);
 
@@ -169,12 +180,13 @@ const doOrder = () => {
 
 return(
 <>
+<div>
 <div className="form-group row">
-  <div className="">
+  <div >
   <input className="form-control mt-3 " value={value} name="search" onChange={InputChanged} />
  
   </div>
-  <div className="">
+  <div >
 
   <button className="btn btn-info col-12" onClick={findTransaction} >Buscar</button>
   </div>
@@ -184,23 +196,39 @@ return(
 
 </div>
 
-{!existT ? <label className="alert alert-danger mt-5"> NO SE ENCONTRARON TRANSACCIONES!</label> : 
+{!existT ? <label 
+className="alert alert-danger mt-3 d-block text-center" 
+role="alert"> NO SE ENCONTRARON TRANSACCIONES!</label> : 
 
 
 <div className="row ">
 {
     !transactions ? "CARGANDO... " : transactions.map((x) => (
-      <div className="card text-center m-3" style={{"width": "18rem"}}  key={x.id}>
-
- <div className="card-body">
-  <h5 className="card-title">{x.concept}</h5>
-  <Link className="card-text" to={`/description/${x.id}`}>Más Información</Link>
-  <button className="btn btn-danger col-12" onClick={() => deleteTransaction(x.id)}>Eliminar</button>
- </div>
- 
- 
-      </div>
      
+     
+
+ 
+      <div className="card text-center m-3 mx-auto" style={{"width": "18rem"}}  key={x.id}>
+
+<div className="card-body">
+ <h5 className="card-title">{x.concept}</h5>
+ <Link className="card-text" to={`/description/${x.id}`}>Más Información</Link>
+ {
+       x.candidateId === "a9d2b671-5550-44ee-a53a-49ea04380def"
+       ?
+       <button className="btn btn-danger col-12" onClick={() => handleShow(x.id)}>Eliminar</button>
+       : 
+       <button className="btn btn-secondary col-12" disabled>Eliminar</button>
+       
+       
+       }
+ 
+
+</div>
+
+
+     </div>
+    
 
     ))
   }
@@ -208,6 +236,8 @@ return(
 
 
 }
+</div>
+{/* Alert Search */}
 <ToastContainer
 position="top-right"
 autoClose={3000}
@@ -219,7 +249,39 @@ pauseOnFocusLoss
 draggable
 pauseOnHover
 />
+
+<div>
+{/* Modal Delete  */}
+<Modal show={show} onHide={handleClose}>
+         <Modal.Header closeButton>
+           <Modal.Title><strong>ELIMINAR TRANSACCION</strong></Modal.Title>
+         </Modal.Header>
+   
+       
+         <Modal.Body>
+<h3>Estas seguro que quieres eliminar esta transaccion?</h3>
+
+</Modal.Body>
+<Modal.Footer>
+<button className="btn btn-danger col-5 mx-auto" onClick={() => handleClose()} >NO</button>
+           <button className="btn btn-success col-5 mx-auto" onClick={() => deleteTransaction()} >SI</button>
+</Modal.Footer>
+
+         
+       
+       </Modal>
+</div>
+
+
+
+
+
+
+
 </>
+
+
+
 )
 
 
