@@ -1,9 +1,10 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 import moment from 'moment';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { PutTransaction, PostTransaction, GetAccounts} from './ApiCalls';
 
 
 
@@ -18,12 +19,7 @@ export default function CreateTransaction({
     editAccount
 }){
 
-    // Inputs Ref
-    const iConcept = useRef(null);
-
-
-
-// Alert Configuration
+// ---------- Alert Configuration
 
 const notify = (value) => toast.error(value, {
     position: "bottom-center",
@@ -51,7 +47,6 @@ const notify = (value) => toast.error(value, {
     });
 
 // ------ SET EDIT DATA
-
 const setEditData = () => {
     if(edit)
     {
@@ -73,110 +68,32 @@ const setEditData = () => {
         }
        
     }
-}
+}        
 
+// Getting Accounts by the API
 
-
-// Request Info 
-    let myHeaders = new Headers({
-        'Authorization': 'a9d2b671-5550-44ee-a53a-49ea04380def',
-        'Content-Type': 'application/json'
-          });
-          
-    // Getting Accounts by the API
-
-    const GetAccounts = async () =>{
-      
-        let myInit = {
-            method: 'get',
-           headers: myHeaders
-         };
-        const urlAccount = "http://63.135.170.173:5000/accounts";
-        let myRequest = new Request(urlAccount, myInit);
-
-
-        try{
-            const response = await fetch(myRequest);
-            if(response.ok){
-                console.log("Accounts Ready!")
-                const responseJSON = await response.json();
-                const dataAccount = responseJSON.data;
-               // console.log(dataAccount)
+    const FetchAccounts = async () =>{
+const {success, dataAccount} = await GetAccounts();
+            if(success){
                 setAccounts(dataAccount);
                 if(!edit){
                     setTransaction({...transaction, account : dataAccount[0].id})
                 }
-              
-               
             }
             else{
-                console.log("No Connected");
+               
                 
             }
-        }
-        catch(err){
-            console.log(err)
-        }
+        
+
     }
 
     useEffect(() => {
-        GetAccounts();
+        FetchAccounts();
         setEditData();
         
         // eslint-disable-next-line react-hooks/exhaustive-deps
     },[])
-
-   // UseEffect Configuration
-
-
-
- 
-    
-
-// ---------- Post Transaction
-
-const postTransaction = async () => {
-
-    let myInit = {
-        method: 'post',
-       headers: myHeaders,
-       body: JSON.stringify(bodyForm)
-     };
-    const url = "http://63.135.170.173:5000/transactions";
-    let myRequest = new Request(url, myInit);
-
-  try{
-    const response = await fetch(myRequest);
-    const responseJSON = await response.json();
-    if(responseJSON.success){
-        console.log("POST PUBLISHED!");
-    }
-    else {
-        console.log("Error!");
-        console.log( responseJSON);
-    }
-  }
-  catch(err){
-    console.log(err);
-  }
-
-
-
-}
-
-
-
-
-     // ----- BodyForm/ Data Form Transaction POST
-
-     let bodyForm = {
-        'concept': "",
-        'description': "",
-        'ammount': 0,
-        'date': "",
-        'accountId': "",
-        'candidateId': "a9d2b671-5550-44ee-a53a-49ea04380def"
-     }
 
     // ------ MODAL CONFIGURATION BOOTSTRAP
     const [show, setShow] = useState(false);
@@ -185,7 +102,7 @@ const postTransaction = async () => {
   
     //  ----------------
 
-    // ----- FORM EVENT LISTENER
+    // ----- FORM EVENT LISTENER ------------------
 
     // Getting Data by the form
     
@@ -197,8 +114,6 @@ const postTransaction = async () => {
 // Saving data by the form
     const handleSubmit = async (e) => {
 e.preventDefault();
-// If is a post
-
 // VALIDATIONS
 if(!transaction.concept || !transaction.description || parseFloat(transaction.ammount) <= 0 || !transaction.date){
 const x = transaction;
@@ -216,22 +131,25 @@ if(!x.date){
 }
 }
 else{
+    // If is a post
     if(!edit){
+        let bodyForm = {
+            'concept': "",
+            'description': "",
+            'ammount': 0,
+            'date': "",
+            'accountId': "",
+            'candidateId': "a9d2b671-5550-44ee-a53a-49ea04380def"
+         }
         bodyForm.concept = transaction.concept;
         bodyForm.description = transaction.description;
         bodyForm.date = transaction.date;
         bodyForm.ammount = parseFloat(transaction.ammount);
         bodyForm.accountId = transaction.account;
         
-            await  postTransaction();
-          //console.log("------- POST -----------")
-         // console.log(bodyForm);
-        
-          
-          
-          
-            window.location.href = "/";
-          
+         await  PostTransaction(bodyForm);
+
+            window.location.href = "/";  
         }
         // if is a Edit/Put
         else{
@@ -242,16 +160,12 @@ else{
             "ammount": parseFloat(transaction.ammount),
             "date": transaction.date
         }
-        await EditTransaction(editBodyForm);
-        //console.log("------- EDIT ----------")
-        //console.log(editBodyForm);
-        
+      
+          await PutTransaction(editBodyForm);
         window.location.reload(false);
         }
     handleClose();
 }
-
-
     }
 
     // ---------------
@@ -277,7 +191,7 @@ else{
     placeholder="Insert Concept" 
     name="concept" 
     value={transaction.concept}
-    ref={iConcept}
+   
     onChange={handleChanges}
     />
 </div>
@@ -349,51 +263,4 @@ pauseOnHover
 
 }
 
-
-const EditTransaction = async (transaction) => {
-
-    // ------ BodyForm/ Data Transaction Form PUT
-    let bodyForm = {
-        'id': transaction.id,
-        'concept': transaction.concept,
-        'description': transaction.description,
-        'ammount': parseFloat(transaction.ammount),
-        'date': transaction.date
-     }
-
-// -------- Request PUT Configuration
-    let myHeaders = new Headers({
-        'Authorization': 'a9d2b671-5550-44ee-a53a-49ea04380def',
-        'Content-Type': 'application/json'
-          });
-    let myInit = {
-         method: 'put',
-        headers: myHeaders,
-        body: JSON.stringify(bodyForm)
-         };
-    const url = "http://63.135.170.173:5000/transactions";
-        let myRequest = new Request(url, myInit);
-
-
-// ------ Fetch API PUT
-try{
-    const response = await fetch(myRequest);
-    const responseJSON = await response.json();
-    
-    
-    if(responseJSON.success){
-        console.log("PUT CORRECT!");
-        console.log(responseJSON);
-        
-    }
-    else{
-        console.log("ERROR PUT");
-        console.log(responseJSON);
-    }
-}
-catch(err){
-    console.log(err);
-}
-
-}
 
